@@ -1,4 +1,4 @@
-from datetime import datetime
+from django.utils import timezone
 
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -28,12 +28,16 @@ def get_paginator(request, queryset,
     return paginator.get_page(page_number)
 
 
+def filter_posts(posts):
+    return posts.filter(is_published=True,
+                        category__is_published=True,
+                        pub_date__lte=timezone.now())
+    
+ 
 def index(request):
-    posts = get_posts(
-        is_published=True,
-        category__is_published=True,
-        pub_date__lte=datetime.now())
-    page_obj = get_paginator(request, posts)
+    posts = get_posts()
+    filtered_posts = filter_posts(posts)
+    page_obj = get_paginator(request, filtered_posts)
     context = {'page_obj': page_obj}
     return render(request, 'blog/index.html', context)
 
@@ -43,17 +47,28 @@ def category_posts(request, category_slug):
         Category,
         slug=category_slug,
         is_published=True)
-    posts = get_posts(
-        is_published=True,
-        category__is_published=True,
-        pub_date__lte=datetime.now(),
-        category=category)
-    page_obj = get_paginator(request, posts)
+    posts = get_posts(category=category)
+    filtered_posts = filter_posts(posts)
+    page_obj = get_paginator(request, filtered_posts)
     context = {'category': category,
                'page_obj': page_obj}
     return render(request, 'blog/post_list.html', context)
-
-
+''' Не победил, пытался реализовать таким способом не работает, помоги разобраться.Остальное ок.
+def post_detail(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user != post.author:
+        post = get_object_or_404(Post, id=post_id,)
+        filtered_posts = filter_posts(post)
+        post = filtered_posts
+    form = CommentForm(request.POST or None)
+    comments = Comment.objects.select_related(
+        'author').filter(post=post)
+    context = {'post': post,
+               'form': form,
+               'comments': comments}
+    return render(request, 'blog/post_detail.html', context) '''
+    
+    
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
@@ -62,7 +77,7 @@ def post_detail(request, post_id):
             id=post_id,
             is_published=True,
             category__is_published=True,
-            pub_date__lte=datetime.now())
+            pub_date__lte=timezone.now())
     form = CommentForm(request.POST or None)
     comments = Comment.objects.select_related(
         'author').filter(post=post)
@@ -153,13 +168,11 @@ def profile(request, username):
         User,
         username=username)
     posts = get_posts(author=profile)
+    filtered_posts = posts
     if request.user != profile:
-        posts = get_posts(
-            is_published=True,
-            category__is_published=True,
-            pub_date__lte=datetime.now(),
-            author=profile)
-    page_obj = get_paginator(request, posts)
+        posts = get_posts(author=profile)
+        filtered_posts = filter_posts(posts)
+    page_obj = get_paginator(request, filtered_posts)
     context = {'profile': profile,
                'page_obj': page_obj}
     return render(request, 'blog/profile.html', context)
