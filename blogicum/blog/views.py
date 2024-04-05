@@ -32,8 +32,8 @@ def filter_posts(posts):
     return posts.filter(is_published=True,
                         category__is_published=True,
                         pub_date__lte=timezone.now())
-    
- 
+
+
 def index(request):
     posts = get_posts()
     filtered_posts = filter_posts(posts)
@@ -53,7 +53,10 @@ def category_posts(request, category_slug):
     context = {'category': category,
                'page_obj': page_obj}
     return render(request, 'blog/post_list.html', context)
-''' Не победил, пытался реализовать таким способом не работает, помоги разобраться.Остальное ок.
+
+
+''' Не победил, пытался реализовать таким способом
+не работает, помоги разобраться.Остальное ок.
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
@@ -67,8 +70,8 @@ def post_detail(request, post_id):
                'form': form,
                'comments': comments}
     return render(request, 'blog/post_detail.html', context) '''
-    
-    
+
+
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
