@@ -1,10 +1,8 @@
 from django.utils import timezone
-
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect
-
 from .forms import PostForm, CommentForm, UserForm
 from .models import Post, Category, User, Comment
 
@@ -53,23 +51,6 @@ def category_posts(request, category_slug):
     context = {'category': category,
                'page_obj': page_obj}
     return render(request, 'blog/post_list.html', context)
-
-
-''' Не победил, пытался реализовать таким способом
-не работает, помоги разобраться.Остальное ок.
-def post_detail(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    if request.user != post.author:
-        post = get_object_or_404(Post, id=post_id,)
-        filtered_posts = filter_posts(post)
-        post = filtered_posts
-    form = CommentForm(request.POST or None)
-    comments = Comment.objects.select_related(
-        'author').filter(post=post)
-    context = {'post': post,
-               'form': form,
-               'comments': comments}
-    return render(request, 'blog/post_detail.html', context) '''
 
 
 def post_detail(request, post_id):
