@@ -56,13 +56,9 @@ def category_posts(request, category_slug):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
+    posts = filter_posts(Post.objects)
     if request.user != post.author:
-        post = get_object_or_404(
-            Post,
-            id=post_id,
-            is_published=True,
-            category__is_published=True,
-            pub_date__lte=timezone.now())
+        post = get_object_or_404(posts, id=post_id)
     form = CommentForm(request.POST or None)
     comments = Comment.objects.select_related(
         'author').filter(post=post)
